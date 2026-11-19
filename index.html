@@ -98,6 +98,210 @@ aside {
   #map { height: 58vh; }
   .wrap { grid-template-rows: minmax(320px, 58vh) auto; }
 }
+
+/* =========================================================
+   RESPONSIVE FLOURISH EMBED LAYOUT
+   Panel #side remains visible by default below 1900px too.
+   Desktop: map left + panel right.
+   Tablet/mobile: map above + panel below.
+   ========================================================= */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Desktop and laptop */
+body {
+  min-width: 0;
+}
+
+header,
+header > div,
+.wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wrap {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 320px) !important;
+  grid-template-rows: minmax(420px, 1fr) !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 420px !important;
+  position: relative !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+#map {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 420px !important;
+}
+
+#side {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  z-index: 1000;
+}
+
+/* Keep the existing ☰ button and its toggle behavior.
+   The panel starts visible; the user can still collapse it if desired. */
+#tog {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tablet and mobile */
+@media (max-width: 900px) {
+  html,
+  body {
+    height: auto !important;
+    min-height: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    grid-template-rows: auto auto !important;
+  }
+
+  header {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  header h1 {
+    font-size: 15px;
+  }
+
+  header p {
+    font-size: 11.5px;
+  }
+
+  .wrap {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(360px, 62vh) auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  #map {
+    grid-column: 1;
+    grid-row: 1;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 62vh !important;
+    min-height: 360px !important;
+    max-height: 620px;
+  }
+
+  #side {
+    grid-column: 1;
+    grid-row: 2;
+    display: block;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-top: 1px solid var(--line) !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    padding: 6px 14px 20px;
+  }
+
+  #side h2 {
+    margin-top: 14px;
+  }
+
+  #side .row {
+    min-height: 30px;
+  }
+
+  #side select {
+    min-height: 40px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  header > div {
+    flex: 1 1 100%;
+  }
+
+  #tog {
+    max-width: none;
+    width: 100%;
+  }
+
+  #map {
+    height: 58vh !important;
+    min-height: 340px !important;
+  }
+
+  .wrap {
+    grid-template-rows: minmax(340px, 58vh) auto !important;
+  }
+
+  #side {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* The native hidden attribute must always win when the user collapses the panel. */
+#side[hidden] {
+  display: none !important;
+}
+
 </style>
 
 </head>
@@ -153,13 +357,19 @@ function start(D) {
   // Keep Leaflet's internal size in sync with the responsive container,
   // including when Flourish resizes the embedded page without a window resize.
   const refreshMapSize = () => map.invalidateSize({ pan: false });
+  // These are assigned once the data bounds are available below.
+  let initialViewApplied = false;
+  let fitInitialView = () => false;
   requestAnimationFrame(refreshMapSize);
   window.addEventListener('resize', refreshMapSize, { passive: true });
   window.addEventListener('orientationchange', () => {
     window.setTimeout(refreshMapSize, 250);
   }, { passive: true });
   if ('ResizeObserver' in window) {
-    const mapResizeObserver = new ResizeObserver(() => refreshMapSize());
+    const mapResizeObserver = new ResizeObserver(() => {
+      refreshMapSize();
+      if (!initialViewApplied) requestAnimationFrame(() => fitInitialView());
+    });
     mapResizeObserver.observe(document.getElementById('map'));
     mapResizeObserver.observe(document.querySelector('.wrap'));
   }
@@ -211,7 +421,28 @@ function start(D) {
   show(0);
   if (D.rasters.some(r => r.val)) $('note').textContent = 'Trang chỉ để xem: không chứa dữ liệu gốc (.dfsu, GeoTIFF, lưới tính toán). Bấm lên lớp kết quả để xem giá trị tại điểm (làm tròn 0,01) và khoảng giá trị.';
   else if (D.rasters.some(r => r.cls)) $('note').textContent = 'Trang chỉ để xem: không chứa dữ liệu gốc (.dfsu, GeoTIFF, giá trị từng ô). Bấm lên lớp kết quả để xem khoảng giá trị.';
-  map.fitBounds(D.view || D.rasters[0].bounds, { padding: [20, 20] });
+  // Fit the complete data extent after the responsive layout has settled.
+  // Flourish may resize an embedded card after the first page paint.
+  const initialBounds = D.view || D.rasters[0].bounds;
+  fitInitialView = () => {
+    if (initialViewApplied) return true;
+    map.invalidateSize({ pan: false });
+    const size = map.getSize();
+    if (size.x < 100 || size.y < 100) return false;
+    map.fitBounds(initialBounds, {
+      padding: [20, 20],
+      animate: false
+    });
+    initialViewApplied = true;
+    return true;
+  };
+  const retryInitialFit = () => {
+    if (fitInitialView()) return;
+    window.setTimeout(retryInitialFit, 180);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(retryInitialFit));
+  window.setTimeout(retryInitialFit, 350);
+  window.setTimeout(retryInitialFit, 850);
   // bấm xem thông tin
   const inPoly = (x, y, rings) => { let ins = false; for (const r of rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const [yi, xi] = r[i], [yj, xj] = r[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) ins = !ins; } return ins; };
   map.on('click', (e) => {
