@@ -378,7 +378,9 @@ function start(D) {
   let base = null;
   $('base').innerHTML = Object.entries(BASES).map(([k, b]) => `<option value="${k}">${b[0]}</option>`).join('') + '<option value="none">Không có nền</option>';
   const setBase = (k) => { if (base) map.removeLayer(base); base = null; const b = BASES[k]; if (!b) return; base = L.layerGroup(b[1].map((u, i) => L.tileLayer(u, { maxZoom: 19, attribution: i ? '' : b[2] }))).addTo(map); };
-  $('base').value = BASES[D.base] ? D.base : 'esri_lbl'; setBase($('base').value); $('base').onchange = () => setBase($('base').value);
+  $('base').value = 'esri_lbl';
+  setBase($('base').value);
+  $('base').onchange = () => setBase($('base').value);
   // lớp kết quả (ảnh màu + ảnh mã cấp để tra cứu khi bấm)
   let cur = null, ov = null, look = null, lookV = null;
   const loadLook = (src, cb) => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0); cb({ g, w: im.width, h: im.height }); }; im.src = src; };
