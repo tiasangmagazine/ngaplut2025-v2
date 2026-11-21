@@ -342,8 +342,8 @@ async function unpack(pw) {
   return JSON.parse(await gunzip(pt));
 }
 const BASES = {
-  esri: ['Ảnh vệ tinh Esri', ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], 'Ảnh © Esri, Maxar, Earthstar Geographics'],
   esri_lbl: ['Ảnh vệ tinh + nhãn', ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'], 'Ảnh © Esri'],
+  esri: ['Ảnh vệ tinh Esri', ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], 'Ảnh © Esri, Maxar, Earthstar Geographics'],
   esri_topo: ['Địa hình Esri', ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'], '© Esri'],
   osm: ['OpenStreetMap', ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], '© OpenStreetMap'],
   carto: ['Nền sáng Carto', ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'], '© OpenStreetMap © CARTO'],
